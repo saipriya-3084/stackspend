@@ -27,41 +27,43 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-start bg-zinc-50 dark:bg-black p-6 py-16 font-sans">
-      <main className="w-full max-w-4xl flex flex-col items-center justify-center space-y-16">
+    <div className="min-h-screen flex flex-col items-center justify-start bg-slate-50 p-4 sm:p-8 md:p-12 font-sans selection:bg-emerald-100">
+      <main className="w-full max-w-4xl mx-auto flex flex-col items-center space-y-12 pb-16">
         
-        {/* Header */}
-        <div className="space-y-4 text-center">
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        {/* Header Section */}
+        <div className="space-y-4 text-center mt-8 sm:mt-12">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-slate-900">
             StackSpend
           </h1>
-          <p className="text-lg sm:text-xl text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto font-medium">
-            Audit your AI tooling spend in minutes.
+          <p className="text-base sm:text-lg text-slate-500 max-w-xl mx-auto font-medium leading-relaxed px-4">
+            Audit your AI tooling spend and uncover immediate savings opportunities for your team.
           </p>
         </div>
         
-        {/* Form Example */}
-        <div className="w-full">
+        {/* Input Section */}
+        <div className="w-full px-2 sm:px-0">
           <AuditForm onSubmit={handleAuditSubmit} />
         </div>
 
-        {/* Results Example */}
+        {/* Results Section */}
         {auditResult && (
-          <div className="w-full pt-16 border-t border-zinc-200/60 dark:border-zinc-800 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="text-center space-y-3">
-              <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <div className="w-full pt-12 border-t border-slate-200 space-y-8">
+            <div className="text-center space-y-2 px-4">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                 Audit Results
               </h2>
-              <p className="text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">
+              <p className="text-sm sm:text-base text-slate-500 max-w-lg mx-auto">
                 Review your customized optimization strategy below to see exactly how much you can save on your AI tooling.
               </p>
             </div>
             
-            <AuditResults 
-              totalMonthlySavings={auditResult.totalMonthlySavings} 
-              totalAnnualSavings={auditResult.totalAnnualSavings} 
-              recommendations={auditResult.recommendations} 
-            />
+            <div className="px-2 sm:px-0">
+              <AuditResults 
+                totalMonthlySavings={auditResult.totalMonthlySavings} 
+                totalAnnualSavings={auditResult.totalAnnualSavings} 
+                recommendations={auditResult.recommendations} 
+              />
+            </div>
           </div>
         )}
 

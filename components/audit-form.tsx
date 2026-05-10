@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const formSchema = z.object({
   teamSize: z.number().min(1, "Team size must be at least 1"),
@@ -42,67 +43,68 @@ export function AuditForm({ onSubmit }: AuditFormProps) {
   });
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 rounded-2xl bg-white shadow-xl border border-zinc-200/60 dark:bg-zinc-950 dark:border-zinc-800 transition-all hover:shadow-2xl">
-      <div className="mb-8 text-center space-y-2">
-        <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 tracking-tight">
+    <Card className="w-full max-w-md mx-auto shadow-sm border-slate-200">
+      <CardHeader className="text-center space-y-1 pb-6 pt-8">
+        <CardTitle className="text-2xl font-semibold tracking-tight text-slate-900">
           Audit Configuration
-        </h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Set up your organization&apos;s AI tooling parameters.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2.5">
-          <Label htmlFor="teamSize" className="text-sm font-medium">
-            Team Size
-          </Label>
-          <Input
-            id="teamSize"
-            type="number"
-            {...register("teamSize", { valueAsNumber: true })}
-            className="w-full h-11 transition-colors"
-            placeholder="e.g. 10"
-          />
-          {errors.teamSize && (
-            <p className="text-[13px] text-red-500 font-medium">{errors.teamSize.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2.5">
-          <Label htmlFor="primaryUseCase" className="text-sm font-medium">
-            Primary Use Case
-          </Label>
-          <Controller
-            control={control}
-            name="primaryUseCase"
-            render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="h-11 transition-colors">
-                  <SelectValue placeholder="Select a use case" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="coding">Coding</SelectItem>
-                  <SelectItem value="writing">Writing</SelectItem>
-                  <SelectItem value="research">Research</SelectItem>
-                  <SelectItem value="data">Data</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
-                </SelectContent>
-              </Select>
+        </CardTitle>
+        <CardDescription className="text-sm text-slate-500">
+          Set up your organization's AI tooling parameters.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="px-8 pb-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="teamSize" className="text-sm font-medium text-slate-900">
+              Team Size
+            </Label>
+            <Input
+              id="teamSize"
+              type="number"
+              {...register("teamSize", { valueAsNumber: true })}
+              className="w-full h-10 border-slate-200 focus-visible:ring-slate-900 shadow-sm"
+              placeholder="e.g. 10"
+            />
+            {errors.teamSize && (
+              <p className="text-xs text-red-500 font-medium">{errors.teamSize.message}</p>
             )}
-          />
-          {errors.primaryUseCase && (
-            <p className="text-[13px] text-red-500 font-medium">{errors.primaryUseCase.message}</p>
-          )}
-        </div>
+          </div>
 
-        <Button 
-          type="submit" 
-          className="w-full h-11 text-base font-medium rounded-xl shadow-md hover:shadow-lg transition-all"
-        >
-          Generate Audit Report
-        </Button>
-      </form>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="primaryUseCase" className="text-sm font-medium text-slate-900">
+              Primary Use Case
+            </Label>
+            <Controller
+              control={control}
+              name="primaryUseCase"
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="h-10 border-slate-200 focus:ring-slate-900 shadow-sm">
+                    <SelectValue placeholder="Select a use case" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="coding">Coding</SelectItem>
+                    <SelectItem value="writing">Writing</SelectItem>
+                    <SelectItem value="research">Research</SelectItem>
+                    <SelectItem value="data">Data</SelectItem>
+                    <SelectItem value="mixed">Mixed</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.primaryUseCase && (
+              <p className="text-xs text-red-500 font-medium">{errors.primaryUseCase.message}</p>
+            )}
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full h-10 mt-2 bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-sm transition-colors"
+          >
+            Generate Audit Report
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
