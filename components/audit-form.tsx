@@ -21,9 +21,13 @@ const formSchema = z.object({
   primaryUseCase: z.string().min(1, "Please select a primary use case"),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type FormValues = z.infer<typeof formSchema>;
 
-export function AuditForm() {
+export interface AuditFormProps {
+  onSubmit: (values: FormValues) => void;
+}
+
+export function AuditForm({ onSubmit }: AuditFormProps) {
   const {
     register,
     handleSubmit,
@@ -36,10 +40,6 @@ export function AuditForm() {
       primaryUseCase: "",
     },
   });
-
-  const onSubmit = (values: FormValues) => {
-    console.log(values);
-  };
 
   return (
     <div className="w-full max-w-md mx-auto p-8 rounded-2xl bg-white shadow-xl border border-zinc-200/60 dark:bg-zinc-950 dark:border-zinc-800 transition-all hover:shadow-2xl">
