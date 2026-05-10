@@ -24,11 +24,15 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>;
 
+import { Loader2 } from "lucide-react";
+
 export interface AuditFormProps {
-  onSubmit: (values: FormValues) => void;
+  onSubmit: (values: FormValues) => Promise<void> | void;
 }
 
 export function AuditForm({ onSubmit }: AuditFormProps) {
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const {
     register,
     handleSubmit,
@@ -42,6 +46,15 @@ export function AuditForm({ onSubmit }: AuditFormProps) {
     },
   });
 
+  const handleFormSubmit = async (values: FormValues) => {
+    try {
+      setIsSubmitting(true);
+      await onSubmit(values);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto shadow-sm border-slate-200">
       <CardHeader className="text-center space-y-1 pb-6 pt-8">
@@ -53,7 +66,7 @@ export function AuditForm({ onSubmit }: AuditFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="px-8 pb-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="teamSize" className="text-sm font-medium text-slate-900">
               Team Size
@@ -64,6 +77,7 @@ export function AuditForm({ onSubmit }: AuditFormProps) {
               {...register("teamSize", { valueAsNumber: true })}
               className="w-full h-10 border-slate-200 focus-visible:ring-slate-900 shadow-sm"
               placeholder="e.g. 10"
+              disabled={isSubmitting}
             />
             {errors.teamSize && (
               <p className="text-xs text-red-500 font-medium">{errors.teamSize.message}</p>
@@ -78,7 +92,7 @@ export function AuditForm({ onSubmit }: AuditFormProps) {
               control={control}
               name="primaryUseCase"
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                   <SelectTrigger className="h-10 border-slate-200 focus:ring-slate-900 shadow-sm">
                     <SelectValue placeholder="Select a use case" />
                   </SelectTrigger>
@@ -99,9 +113,17 @@ export function AuditForm({ onSubmit }: AuditFormProps) {
 
           <Button 
             type="submit" 
+            disabled={isSubmitting}
             className="w-full h-10 mt-2 bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-sm transition-colors"
           >
-            Generate Audit Report
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              "Generate Audit Report"
+            )}
           </Button>
         </form>
       </CardContent>
