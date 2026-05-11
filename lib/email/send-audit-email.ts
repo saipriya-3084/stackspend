@@ -79,7 +79,7 @@ export async function sendAuditEmail({
     `;
 
     const response = await resend.emails.send({
-      from: "StackSpend <hello@stackspend.com>",
+      from: "StackSpend <onboarding@resend.dev>",
       to: [toEmail],
       subject: "Your StackSpend AI Savings Report",
       html: htmlBody,

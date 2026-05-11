@@ -1,141 +1,217 @@
 "use client";
 
 import { useState } from "react";
-import { AuditForm, FormValues } from "@/components/audit-form";
-import { AuditResults } from "@/components/audit-results";
-import { LeadCaptureForm, LeadCaptureFormValues } from "@/components/lead-capture-form";
-import { runAudit } from "@/lib/audit/audit";
-import { AuditResult, ToolSpendInput, UseCase } from "@/types/audit";
-import { submitAuditAction, submitLeadAction, sendEmailAction } from "./actions";
 import { CheckCircle2 } from "lucide-react";
 
+import { AuditForm, FormValues } from "@/components/audit-form";
+import { AuditResults } from "@/components/audit-results";
+import {
+  LeadCaptureForm,
+  LeadCaptureFormValues,
+} from "@/components/lead-capture-form";
+
+import { runAudit } from "@/lib/audit/audit";
+
+import {
+  AuditResult,
+  ToolSpendInput,
+  UseCase,
+} from "@/types/audit";
+
+import {
+  submitAuditAction,
+  submitLeadAction,
+  sendEmailAction,
+} from "./actions";
+
 const MOCK_TOOLS: ToolSpendInput[] = [
-  { tool: "chatgpt", plan: "team", monthlySpend: 60, seats: 2 },
-  { tool: "cursor", plan: "business", monthlySpend: 40, seats: 1 }
+  {
+    tool: "chatgpt",
+    plan: "team",
+    monthlySpend: 60,
+    seats: 2,
+  },
+  {
+    tool: "cursor",
+    plan: "business",
+    monthlySpend: 40,
+    seats: 1,
+  },
 ];
 
 export default function Home() {
-  const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
-  const [auditId, setAuditId] = useState<string | null>(null);
-  const [isLeadSubmitted, setIsLeadSubmitted] = useState(false);
+  const [auditResult, setAuditResult] =
+    useState<AuditResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [auditId, setAuditId] =
+    useState<string | null>(null);
 
-  const handleAuditSubmit = async (values: FormValues) => {
+  const [isLeadSubmitted, setIsLeadSubmitted] =
+    useState(false);
+  const [isRunningAudit, setIsRunningAudit] = useState(false);
+const [isSendingReport, setIsSendingReport] = useState(false);
+  const handleAuditSubmit = async (
+    values: FormValues
+  ) => {
+    setErrorMessage(null);
+    setIsRunningAudit(true);
     try {
-      // 1. Run local audit logic to calculate savings immediately
       const result = runAudit({
-        teamSize: values.teamSize,
-        primaryUseCase: values.primaryUseCase as UseCase,
-        tools: MOCK_TOOLS,
-      });
-      
-      // 2. Persist audit to DB
+  teamSize: values.teamSize,
+  primaryUseCase:
+    values.primaryUseCase as UseCase,
+  tools: MOCK_TOOLS,
+});
+
       const savedAudit = await submitAuditAction({
         teamSize: values.teamSize,
         primaryUseCase: values.primaryUseCase,
-        totalMonthlySavings: result.totalMonthlySavings,
-        totalAnnualSavings: result.totalAnnualSavings,
+        totalMonthlySavings:
+          result.totalMonthlySavings,
+        totalAnnualSavings:
+          result.totalAnnualSavings,
       });
 
       setAuditId(savedAudit.id);
       setAuditResult(result);
-      setIsLeadSubmitted(false); // Reset lead submission state for new audits
+      setIsLeadSubmitted(false);
     } catch (error) {
-      console.error("Failed to generate and save audit:", error);
-      alert("Something went wrong while generating your audit. Please try again.");
-    }
+      console.error(
+        "Failed to generate and save audit:",
+        error
+      );
+
+      setErrorMessage(
+  "Something went wrong while generating your audit."
+);
+    }finally {
+    setIsRunningAudit(false);
+  }
   };
 
-  const handleLeadCaptureSubmit = async (values: LeadCaptureFormValues) => {
+  const handleLeadCaptureSubmit = async (
+    values: LeadCaptureFormValues
+  ) => {
+    setErrorMessage(null);
     if (!auditId || !auditResult) return;
 
     try {
-      // 1. Save lead to DB, connecting it to the audit ID
       await submitLeadAction({
         email: values.email,
         companyName: values.companyName,
-        auditId: auditId,
+        auditId,
       });
 
-      // 2. Format a quick summary text
-      const summaryText = auditResult.recommendations.length > 0 
-        ? `We found ${auditResult.recommendations.length} optimization opportunities for your stack. Upgrading or consolidating these could save you up to $${auditResult.totalAnnualSavings.toLocaleString()} annually.`
-        : "Your current stack is perfectly optimized! Keep up the great work.";
+      const summaryText =
+        auditResult.recommendations.length > 0
+          ? `We found ${auditResult.recommendations.length} optimization opportunities for your stack. You could save up to $${auditResult.totalAnnualSavings.toLocaleString()} annually.`
+          : "Your current stack is already optimized.";
 
-      // 3. Send confirmation email
       await sendEmailAction({
         toEmail: values.email,
-        monthlySavings: auditResult.totalMonthlySavings,
-        annualSavings: auditResult.totalAnnualSavings,
+        monthlySavings:
+          auditResult.totalMonthlySavings,
+        annualSavings:
+          auditResult.totalAnnualSavings,
         summary: summaryText,
       });
 
       setIsLeadSubmitted(true);
     } catch (error) {
-      console.error("Failed to process lead or send email:", error);
-      alert("Something went wrong. Please check your details and try again.");
-    }
+      console.error(
+        "Failed to process lead or send email:",
+        error
+      );
+
+     setErrorMessage(
+  "We couldn't send your report email right now."
+);
+    } finally {
+    setIsSendingReport(false);
+  }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start bg-slate-50 p-4 sm:p-8 md:p-12 font-sans selection:bg-emerald-100">
-      <main className="w-full max-w-4xl mx-auto flex flex-col items-center space-y-12 pb-16">
-        
-        {/* Header Section */}
-        <div className="space-y-4 text-center mt-8 sm:mt-12">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-slate-900">
-            StackSpend
-          </h1>
-          <p className="text-base sm:text-lg text-slate-500 max-w-xl mx-auto font-medium leading-relaxed px-4">
-            Audit your AI tooling spend and uncover immediate savings opportunities for your team.
-          </p>
-        </div>
-        
-        {/* Input Section */}
-        <div className="w-full px-2 sm:px-0">
-          <AuditForm onSubmit={handleAuditSubmit} />
-        </div>
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-16 px-4 py-10 sm:px-6 lg:px-8">
+        <section className="space-y-6 text-center">
+          <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-1 text-sm font-medium text-slate-600 shadow-sm">
+            AI SaaS Spend Optimization
+          </div>
 
-        {/* Results Section */}
+          <div className="space-y-4">
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+              Audit Your AI Tooling Spend
+            </h1>
+
+            <p className="mx-auto max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+              Discover unnecessary subscriptions,
+              reduce SaaS waste, and uncover
+              actionable savings opportunities for
+              your team in minutes.
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+<AuditForm
+  onSubmit={handleAuditSubmit}
+/>        </section>
+        {errorMessage && (
+  <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    {errorMessage}
+  </div>
+)}
         {auditResult && (
-          <div className="w-full pt-12 border-t border-slate-200 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="space-y-8">
-              <div className="text-center space-y-2 px-4">
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                  Audit Results
-                </h2>
-                <p className="text-sm sm:text-base text-slate-500 max-w-lg mx-auto">
-                  Review your customized optimization strategy below to see exactly how much you can save on your AI tooling.
-                </p>
-              </div>
-              
-              <div className="px-2 sm:px-0">
-                <AuditResults 
-                  totalMonthlySavings={auditResult.totalMonthlySavings} 
-                  totalAnnualSavings={auditResult.totalAnnualSavings} 
-                  recommendations={auditResult.recommendations} 
-                />
-              </div>
+          <section className="space-y-10">
+            <div className="space-y-3 text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+                Your Savings Report
+              </h2>
+
+              <p className="mx-auto max-w-2xl text-slate-600">
+                Review personalized recommendations
+                and identify where your AI tooling
+                stack can be optimized.
+              </p>
             </div>
 
-            {/* Lead Capture Section */}
-            <div className="px-2 sm:px-0 pt-4">
+            <AuditResults
+              totalMonthlySavings={
+                auditResult.totalMonthlySavings
+              }
+              totalAnnualSavings={
+                auditResult.totalAnnualSavings
+              }
+              recommendations={
+                auditResult.recommendations
+              }
+            />
+
+            <div className="pt-4">
               {isLeadSubmitted ? (
-                <div className="w-full max-w-md mx-auto p-8 rounded-xl bg-emerald-50 border border-emerald-100 text-center space-y-3">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-                  <h3 className="text-lg font-semibold text-emerald-900">
-                    Report Sent!
+                <div className="mx-auto flex max-w-md flex-col items-center rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
+                  <CheckCircle2 className="mb-4 h-10 w-10 text-emerald-500" />
+
+                  <h3 className="text-xl font-semibold text-emerald-900">
+                    Report Sent
                   </h3>
-                  <p className="text-sm text-emerald-700 font-medium">
-                    Your savings report has been successfully delivered to your inbox.
+
+                  <p className="mt-2 text-sm leading-6 text-emerald-700">
+                    Your personalized savings report
+                    has been delivered successfully.
                   </p>
                 </div>
               ) : (
-                <LeadCaptureForm onSubmit={handleLeadCaptureSubmit} />
+                <LeadCaptureForm
+                  onSubmit={
+                    handleLeadCaptureSubmit
+                  }
+                />
               )}
             </div>
-          </div>
+          </section>
         )}
-
       </main>
     </div>
   );
