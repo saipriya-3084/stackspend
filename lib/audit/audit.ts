@@ -1,48 +1,116 @@
-import { AuditInput, AuditResult } from "@/types/audit";
+import {
+  AuditResult,
+  Recommendation,
+  ToolSpendInput,
+  UseCase,
+} from "@/types/audit";
 
-export function runAudit(input: AuditInput): AuditResult {
-  const recommendations = [];
+interface RunAuditInput {
+  teamSize: number;
+  primaryUseCase: UseCase;
+  tools: ToolSpendInput[];
+}
 
-  for (const tool of input.tools) {
+export function runAudit({
+  teamSize,
+  primaryUseCase,
+  tools,
+}: RunAuditInput): AuditResult {
+  const recommendations: Recommendation[] = [];
+
+  let totalMonthlySavings = 0;
+
+  // Team-size based recommendations
+  if (teamSize >= 10) {
+    recommendations.push({
+      title: "Consolidate AI tooling",
+      rationale:
+        "Large teams often pay for overlapping AI subscriptions.",
+      monthlySavings: 120,
+    });
+
+    totalMonthlySavings += 120;
+  }
+
+  // Use-case based recommendations
+  if (primaryUseCase === "coding") {
+    recommendations.push({
+      title: "Optimize coding assistant usage",
+      rationale:
+        "Engineering teams frequently overpay for premium AI coding tiers.",
+      monthlySavings: 40,
+    });
+
+    totalMonthlySavings += 40;
+  }
+
+  if (primaryUseCase === "research") {
+    recommendations.push({
+      title: "Reduce duplicate research tools",
+      rationale:
+        "Multiple AI research subscriptions may overlap heavily.",
+      monthlySavings: 60,
+    });
+
+    totalMonthlySavings += 60;
+  }
+
+  if (primaryUseCase === "design") {
+    recommendations.push({
+      title: "Streamline design AI stack",
+      rationale:
+        "Creative tooling often includes redundant premium plans.",
+      monthlySavings: 35,
+    });
+
+    totalMonthlySavings += 35;
+  }
+
+  // Tool-based recommendations
+  tools.forEach((tool) => {
     if (
       tool.tool === "chatgpt" &&
-      tool.plan === "team" &&
-      tool.seats <= 2
+      tool.plan === "team"
     ) {
       recommendations.push({
-        tool: "chatgpt" as const,
-        currentPlan: "team",
-        recommendation: "Switch to ChatGPT Plus",
+        title: "Downgrade ChatGPT Team plan",
         rationale:
-          "Small teams often do not need shared workspace administration features.",
-        monthlySavings: 20,
+          "Some users may not require enterprise-level access.",
+        monthlySavings: 25,
       });
+
+      totalMonthlySavings += 25;
     }
 
     if (
       tool.tool === "cursor" &&
-      tool.plan === "business" &&
-      tool.seats === 1
+      tool.monthlySpend > 30
     ) {
       recommendations.push({
-        tool: "cursor" as const,
-        currentPlan: "business",
-        recommendation: "Downgrade to Cursor Pro",
+        title: "Review Cursor seat allocation",
         rationale:
-          "Business admin controls are likely unnecessary for a solo developer.",
-        monthlySavings: 20,
+          "Inactive developer seats may still be billed.",
+        monthlySavings: 15,
       });
-    }
-  }
 
-  const totalMonthlySavings = recommendations.reduce(
-    (sum, rec) => sum + rec.monthlySavings,
-    0
-  );
+      totalMonthlySavings += 15;
+    }
+  });
+
+  // No recommendations fallback
+  if (recommendations.length === 0) {
+    recommendations.push({
+      title: "Healthy AI stack",
+      rationale:
+        "Your current tooling setup already appears optimized.",
+      monthlySavings: 0,
+    });
+  }
 
   return {
     totalMonthlySavings,
-    totalAnnualSavings: totalMonthlySavings * 12,
+    totalAnnualSavings:
+      totalMonthlySavings * 12,
     recommendations,
   };
 }
