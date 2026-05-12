@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 export interface Recommendation {
   tool: string;
   currentPlan: string;
-  recommendation: string;
+  title: string;
   rationale: string;
   monthlySavings: number;
 }
@@ -97,7 +97,7 @@ export function AuditResults({
                           </Badge>
                         </div>
                         <p className="text-sm font-medium text-emerald-600">
-                          ↳ {item.recommendation}
+                          ↳ {item.title}
                         </p>
                       </div>
                       <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">

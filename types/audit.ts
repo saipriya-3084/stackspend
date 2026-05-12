@@ -13,7 +13,8 @@ export type UseCase =
   | "writing"
   | "research"
   | "data"
-  | "mixed";
+  | "mixed"
+  | "design";
 
 export interface ToolSpendInput {
   tool: ToolName;
@@ -28,16 +29,21 @@ export interface AuditInput {
   tools: ToolSpendInput[];
 }
 
-export interface AuditRecommendation {
-  tool: ToolName;
+export interface Recommendation {
+  tool: string;
   currentPlan: string;
-  recommendation: string;
+  title: string;
   rationale: string;
   monthlySavings: number;
 }
-
 export interface AuditResult {
   totalMonthlySavings: number;
   totalAnnualSavings: number;
-  recommendations: AuditRecommendation[];
+  recommendations: Recommendation[];
+};
+export interface SendAuditEmailParams {
+  toEmail: string;
+  monthlySavings: number;
+  annualSavings: number;
+  summary: string;
 }

@@ -176,18 +176,11 @@ const [isSendingReport, setIsSendingReport] = useState(false);
               </p>
             </div>
 
-            <AuditResults
-              totalMonthlySavings={
-                auditResult.totalMonthlySavings
-              }
-              totalAnnualSavings={
-                auditResult.totalAnnualSavings
-              }
-              recommendations={
-                auditResult.recommendations
-              }
-            />
-
+           <AuditResults
+  totalMonthlySavings={auditResult.totalMonthlySavings}
+  totalAnnualSavings={auditResult.totalAnnualSavings}
+  recommendations={auditResult.recommendations}
+/>
             <div className="pt-4">
               {isLeadSubmitted ? (
                 <div className="mx-auto flex max-w-md flex-col items-center rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center shadow-sm">
